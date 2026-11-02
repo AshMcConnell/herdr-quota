@@ -1,5 +1,5 @@
 #!/bin/sh
 # Preview-only quota-axi: prints the made-up demo report, whatever the
 # arguments. Put tests/preview first on herdr-app's PATH to render
-# preview.png without real usage data.
+# docs/screenshot.png without real usage data.
 exec cat "$(cd "$(dirname "$0")/.." && pwd)/fixtures/quota-demo.json"
