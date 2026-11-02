@@ -19,10 +19,11 @@ is a command-line tool that reports how much quota you have left with local
 AI coding agents — Claude, Codex, Cursor, GitHub Copilot, Grok, Kimi, Z.AI,
 Alibaba, Antigravity, DeepSeek, OpenRouter and others. It reads your local
 auth sources and asks each vendor's own endpoints for the remaining quota
-windows, when they reset, and the pace you're burning through them. It is
-read-only: it never routes requests, logs you in, or mints or rotates
-credentials. This plugin puts that report in a herdr-app pane instead of a
-terminal dump.
+windows, when they reset, and the pace you're burning through them. It never
+routes requests or logs you in, and it mints no credentials of its own. By
+default, though, it may ask a vendor's own CLI to refresh an expired
+session; `--no-credential-refresh` turns that off. This plugin puts that
+report in a herdr-app pane instead of a terminal dump.
 
 ## Install
 
