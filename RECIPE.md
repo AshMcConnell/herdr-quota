@@ -7,7 +7,7 @@ not-set-up and credential-expired providers shown plainly, folded into
 one line. quota-axi itself is untouched: the pane only reads it, and
 `quota-herdr <args>` still passes any argument through.
 
-![Quota](preview.png)
+![Quota](docs/screenshot.png)
 
 ## What you see
 
@@ -98,10 +98,13 @@ it — or a 34 px bar when the same mod is docked short in a layout.
   check`. `tests/launcher.test.sh` drives the launcher against stub
   binaries; `tests/fixtures/quota-fixture.json` is a trimmed real
   `--json` report and `tests/fixtures/quota-demo.json` the made-up
-  demo data behind `preview.png`. To regenerate it, start herdr-app with
-  `PATH="$PWD/tests/preview:$PATH"` so the mod's first candidate is
-  `tests/preview/quota-axi`, a shim that prints the demo fixture; open
-  the pane and capture it cropped to the pane only.
+  demo data behind `docs/screenshot.png`. To regenerate it, start
+  herdr-app with `PATH="$PWD/tests/preview:$PATH"` so the mod's first
+  candidate is `tests/preview/quota-axi`, a shim that prints the demo
+  fixture; open the pane and capture it cropped to the pane only.
+  `preview.png` is the 2000×1000 mod card, rendered from the
+  self-contained `docs/attract/quota-attract.html` with headless Chrome
+  (`--headless --screenshot=preview.png --window-size=2000,1000`).
 
 ## Watch out
 

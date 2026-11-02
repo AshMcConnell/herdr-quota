@@ -3,7 +3,9 @@
 Watch local provider quota windows in a herdr-app pane instead of a
 terminal dump.
 
-![Quota in a herdr pane](preview.png)
+![Quota mod card](preview.png)
+
+![Quota in a herdr pane](docs/screenshot.png)
 
 quota-axi runs as usual — same CLI, same readings, same output for the
 agent. Only the surface changes: the report opens as a native pane beside
@@ -11,6 +13,19 @@ the agent's terminal and refreshes itself. Each provider shows its
 tightest window, remaining %, reset time and pace; providers that are not
 set up or whose credentials expired are shown plainly, folded into one
 line until you expand them.
+
+## What is quota-axi?
+
+[quota-axi](https://github.com/kunchenguid/quota-axi) ([npm](https://www.npmjs.com/package/quota-axi))
+is a command-line tool that reports how much quota you have left with local
+AI coding agents — Claude, Codex, Cursor, GitHub Copilot, Grok, Kimi, Z.AI,
+Alibaba, Antigravity, DeepSeek, OpenRouter and others. It reads your local
+auth sources and asks each vendor's own endpoints for the remaining quota
+windows, when they reset, and the pace you're burning through them. It never
+routes requests or logs you in, and it mints no credentials of its own. By
+default, though, it may ask a vendor's own CLI to refresh an expired
+session; `--no-credential-refresh` turns that off. This plugin puts that
+report in a herdr-app pane instead of a terminal dump.
 
 ## Install
 
