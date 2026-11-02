@@ -1,6 +1,6 @@
 import { View, div } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
-import { exec, theme, run, home, readTextFile, props } from "herdr";
+import { exec, theme, run, home } from "herdr";
 import {
   summarize, barMode, remainingTone, paceText, formatReset, formatAge,
 } from "./model.js";
@@ -18,6 +18,9 @@ const BAR_CHIPS = 6;
 // login shells), so plain exec("quota-axi") fails on machines where the
 // CLI plainly works in a terminal. Try PATH first, then the usual
 // install prefixes.
+const SPAWN_FAILURE = /could not be started|not found|no such|cannot start|permission denied|ENOENT|EACCES/i;
+const NOT_INSTALLED = "quota-axi is not installed (or not on PATH). Install quota-axi, then reopen this pane.";
+
 const QUOTA_AXI_CANDIDATES = () => [
   "quota-axi",
   `${home()}/.local/share/mise/shims/quota-axi`,
@@ -40,11 +43,6 @@ export default class Quota extends View {
     this.state = { name: "loading" };
     this.fetching = false;
     this.expanded = false;
-    // Demo mode (`tab.new --mod quota --props '{"demo": "<path>"}'`):
-    // read one static quota-axi JSON file instead of polling the real
-    // CLI. Used for the repo's preview and manual inspection — never
-    // touches credentials or quota-axi itself.
-    this.demoFile = typeof props()?.demo === "string" && props().demo ? props().demo : null;
     this.fetch(cx);
     cx.timer.every(FETCH_MS, (cx) => this.fetch(cx));
     cx.timer.every(TICK_MS, (cx) => {
@@ -57,37 +55,23 @@ export default class Quota extends View {
   fetch(cx, { force = false } = {}) {
     if (this.fetching) return;
     this.fetching = true;
-    if (this.demoFile) {
-      cx.spawn(async (cx) => {
-        this.now = Date.now();
-        try {
-          const text = await readTextFile(this.demoFile);
-          if (text === null) throw new Error("demo file not found");
-          this.raw = JSON.parse(text);
-          this.view = summarize(this.raw, this.now);
-          this.state = { name: "ready" };
-        } catch (e) {
-          this.state = { name: "error", message: `demo file could not be read: ${e?.message ?? e}` };
-        }
-        this.fetching = false;
-        cx.notify();
-      });
-      return;
-    }
     const args = ["--json", "--no-credential-refresh"];
     if (!force) args.push("--max-age", MAX_AGE);
     cx.spawn(async (cx) => {
-      // Try each candidate until one starts; a started quota-axi that
-      // exits nonzero is a real error, not a reason to try the next path.
+      // Try each candidate until one starts; anything other than a
+      // failure to start (a nonzero exit, a timeout) is the final answer.
       let r = null;
-      let lastError = null;
+      let failure = null;
       for (const bin of QUOTA_AXI_CANDIDATES()) {
         try {
           r = await exec(bin, args);
-          lastError = null;
           break;
         } catch (e) {
-          lastError = e;
+          const message = String(e?.message ?? e);
+          if (!SPAWN_FAILURE.test(message)) {
+            failure = message;
+            break;
+          }
         }
       }
       this.now = Date.now();
@@ -99,13 +83,8 @@ export default class Quota extends View {
         } else {
           const message = r
             ? stderrTail(r.stderr) || `quota-axi exited ${r.code}`
-            : String(lastError?.message ?? lastError);
-          this.state = {
-            name: "error",
-            message: /could not be started|not found|no such|cannot start|permission denied/i.test(message)
-              ? "quota-axi is not installed (or not on PATH). Install quota-axi, then reopen this pane."
-              : message,
-          };
+            : failure ?? NOT_INSTALLED;
+          this.state = { name: "error", message };
         }
       } catch (e) {
         this.state = { name: "error", message: `quota-axi output was not JSON: ${e?.message ?? e}` };
@@ -215,26 +194,28 @@ export default class Quota extends View {
   }
 
   body(t) {
-    switch (this.state.name) {
-      case "loading":
-        return this.centered(t, "Reading quota-axi…");
-      case "error":
-        return this.centered(t, this.state.message, t.blocked);
-      default: {
-        const active = this.view?.active ?? [];
-        const off = this.unavailableSection(t);
-        if (!active.length && !off) return this.centered(t, "No providers reported.");
-        return v_flex().flex_1().min_h(0).overflow_y_scrollbar()
-          .children(active.map((p) => this.providerRow(t, p)))
-          .when(!!off, (el) => el.child(off));
-      }
-    }
+    if (this.state.name === "loading") return this.centered(t, "Reading quota-axi…");
+    if (this.state.name === "error" && !this.view) return this.centered(t, this.state.message, t.blocked);
+    const failed = this.state.name === "error";
+    const active = this.view?.active ?? [];
+    const off = this.unavailableSection(t);
+    const list = !active.length && !off
+      ? this.centered(t, "No providers reported.")
+      : v_flex().flex_1().min_h(0).overflow_y_scrollbar()
+        .children(active.map((p) => this.providerRow(t, p)))
+        .when(!!off, (el) => el.child(off));
+    if (!failed) return list;
+    return v_flex().flex_1().min_h(0)
+      .child(div().flex_none().px(12).pt(8)
+        .child(this.detail("read-error", `last read failed: ${this.state.message}`, t.blocked)))
+      .child(list);
   }
 
   /** Docked short: one row of the tightest providers. Clicking opens the
    *  full pane in a tab. */
   barRow(t) {
-    if (this.state.name === "error") {
+    const failed = this.state.name === "error";
+    if (failed && !this.view) {
       return h_flex().size_full().px(10).items_center().text_size(11.5).text_color(t.blocked)
         .child(div().min_w(0).truncate().child(`quota: ${this.state.message}`));
     }
@@ -254,7 +235,8 @@ export default class Quota extends View {
       .when(off > 0, (el) => el.child(div().flex_none().text_color(t.dim).child(`· ${off} off`)))
       .child(div().flex_1())
       .when(this.view?.generatedAt != null, (el) =>
-        el.child(div().flex_none().text_color(t.dim).child(formatAge(this.view.generatedAt, this.now))));
+        el.child(div().flex_none().text_color(failed ? t.blocked : t.dim)
+          .child(failed ? `${formatAge(this.view.generatedAt, this.now)} · read failed` : formatAge(this.view.generatedAt, this.now))));
   }
 
   render(_cx) {
@@ -266,7 +248,7 @@ export default class Quota extends View {
       .child(h_flex().flex_none().h(40).px(12).gap(10).items_center().bg(t.chrome).border_b(1).border_color(t.border)
         .child(div().text_size(13).font_semibold().text_color(t.foreground).child("Quota"))
         .child(this.detail("age",
-          this.state.name === "ready" && this.view?.generatedAt != null
+          this.view?.generatedAt != null
             ? `quota-axi · ${formatAge(this.view.generatedAt, this.now)}`
             : "quota-axi", t.muted))
         .child(div().flex_1())

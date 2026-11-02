@@ -82,6 +82,12 @@ describe("formatReset", () => {
     expect(formatReset("2026-11-04T23:00:00.000Z", NOW)).toBe("2d 8h");
     expect(formatReset("2026-11-10T00:00:00.000Z", NOW)).toBe("7d 9h");
   });
+  test("rounding never carries into a 60m or 24h label", () => {
+    expect(formatReset("2026-11-02T15:59:40.000Z", NOW)).toBe("1h");
+    expect(formatReset("2026-11-02T16:59:40.000Z", NOW)).toBe("2h");
+    expect(formatReset("2026-11-04T14:59:40.000Z", NOW)).toBe("2d");
+    expect(formatReset("2026-11-05T14:40:00.000Z", NOW)).toBe("3d");
+  });
   test("past and invalid dates never break the view", () => {
     expect(formatReset("2026-11-02T14:00:00.000Z", NOW)).toBe("resets soon");
     expect(formatReset("not-a-date", NOW)).toBe("");
@@ -96,6 +102,10 @@ describe("formatAge", () => {
     expect(formatAge(NOW - 4 * 60_000, NOW)).toBe("4m ago");
     expect(formatAge(NOW - 3 * 3_600_000, NOW)).toBe("3h ago");
     expect(formatAge(undefined, NOW)).toBe("");
+  });
+  test("rounding never carries into a 60m or 24h label", () => {
+    expect(formatAge(NOW - 59.6 * 60_000, NOW)).toBe("1h ago");
+    expect(formatAge(NOW - 23.6 * 3_600_000, NOW)).toBe("1d ago");
   });
 });
 

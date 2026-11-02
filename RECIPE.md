@@ -40,9 +40,12 @@ it — or a 34 px bar when the same mod is docked short in a layout.
   `name 32%` in each provider's tone color, six worst first, then
   `+N`, `· N off` and the reading's age in `dim`. The row's tooltip is
   "Open the quota pane"; clicking opens the full pane as a tab.
-- **quota-axi missing or failed**: a centered message in `blocked`
-  (`quota-axi is not installed (or not on PATH). Install quota-axi, then
-  reopen this pane.`), or the program's last stderr line.
+- **quota-axi missing or failed**: before any good reading, a centered
+  message in `blocked` (`quota-axi is not installed (or not on PATH).
+  Install quota-axi, then reopen this pane.`), or the program's last
+  stderr line. After one, the last good reading stays with a
+  `last read failed: …` line in `blocked` above it (bar mode: the age
+  reads `… · read failed` in `blocked`).
 
 ## How it behaves
 
@@ -75,12 +78,10 @@ it — or a 34 px bar when the same mod is docked short in a layout.
     `~/.local/share/mise/shims/quota-axi`, `~/.local/bin/quota-axi` and
     the Homebrew prefixes, because the app's own environment often lacks
     version managers (a started quota-axi that exits nonzero is a real
-    error, not a reason to try the next path). JSON parse and error text
-    land in one `state` machine (`loading` / `ready` / `error`). A
-    `demo` prop (`tab.new --mod quota --props '{"demo": "<path>"}'`)
-    reads one static quota-axi JSON file instead — the pane runs no
-    quota-axi and never touches credentials; `tests/fixtures/quota-demo.json`
-    (made-up providers, realistic numbers) is the repo preview's data.
+    error, not a reason to try the next path; only a failure to start
+    moves on). JSON parse and error text land in one `state` machine
+    (`loading` / `ready` / `error`); an error keeps the last good
+    `view` on screen.
   - `model.js`: pure. `summarize(report, now)` → active rows (name, plan,
     status, `tightest`, windows, credits, error, remedy) and the folded
     unavailable list; `pickTightest`, `formatReset`, `formatAge`,
@@ -97,8 +98,10 @@ it — or a 34 px bar when the same mod is docked short in a layout.
   check`. `tests/launcher.test.sh` drives the launcher against stub
   binaries; `tests/fixtures/quota-fixture.json` is a trimmed real
   `--json` report and `tests/fixtures/quota-demo.json` the made-up
-  demo data behind `preview.png` (regenerated with the `demo` prop,
-  cropped to the pane only).
+  demo data behind `preview.png`. To regenerate it, start herdr-app with
+  `PATH="$PWD/tests/preview:$PATH"` so the mod's first candidate is
+  `tests/preview/quota-axi`, a shim that prints the demo fixture; open
+  the pane and capture it cropped to the pane only.
 
 ## Watch out
 
@@ -121,7 +124,8 @@ it — or a 34 px bar when the same mod is docked short in a layout.
   statuses (they read as unavailable) and missing fields, but a future
   major schema change would need a model update and new fixtures.
 - `exec` has a 30 s limit; a very slow first read across every provider
-  can hit it. The pane shows the error plainly; Refresh retries.
+  can hit it. The pane shows the error plainly (above the last good
+  reading, if any); Refresh retries.
 - The launcher's pane lookup only matches terminals on this machine
   (`.machine == null`); from a remote space it opens a tab instead.
 

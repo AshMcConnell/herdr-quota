@@ -66,14 +66,16 @@ export function formatReset(iso, now = Date.now()) {
   if (Number.isNaN(at)) return "";
   const left = at - now;
   if (left <= 0) return "resets soon";
-  if (left < HOUR) return `${Math.max(1, Math.round(left / MINUTE))}m`;
-  if (left < 2 * DAY) {
-    const h = Math.floor(left / HOUR);
-    const m = Math.round((left % HOUR) / MINUTE);
+  const minutes = Math.max(1, Math.round(left / MINUTE));
+  if (minutes < 60) return `${minutes}m`;
+  if (minutes < 48 * 60) {
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
     return m ? `${h}h ${m}m` : `${h}h`;
   }
-  const d = Math.floor(left / DAY);
-  const h = Math.round((left % DAY) / HOUR);
+  const hours = Math.round(left / HOUR);
+  const d = Math.floor(hours / 24);
+  const h = hours % 24;
   return h ? `${d}d ${h}h` : `${d}d`;
 }
 
@@ -82,8 +84,10 @@ export function formatAge(ms, now = Date.now()) {
   if (typeof ms !== "number" || Number.isNaN(ms)) return "";
   const age = Math.max(0, now - ms);
   if (age < MINUTE) return "just now";
-  if (age < HOUR) return `${Math.round(age / MINUTE)}m ago`;
-  if (age < DAY) return `${Math.round(age / HOUR)}h ago`;
+  const minutes = Math.round(age / MINUTE);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.round(age / HOUR);
+  if (hours < 24) return `${hours}h ago`;
   return `${Math.round(age / DAY)}d ago`;
 }
 
