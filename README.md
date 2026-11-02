@@ -3,7 +3,9 @@
 Watch local provider quota windows in a herdr-app pane instead of a
 terminal dump.
 
-![Quota in a herdr pane](preview.png)
+![Quota mod card](preview.png)
+
+![Quota in a herdr pane](docs/screenshot.png)
 
 quota-axi runs as usual — same CLI, same readings, same output for the
 agent. Only the surface changes: the report opens as a native pane beside

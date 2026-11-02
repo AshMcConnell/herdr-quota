@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 2000px; height: 1000px; overflow: hidden; }
+  body {
+    font-family: "Inter", "Geist", -apple-system, "Helvetica Neue", sans-serif;
+    background:
+      radial-gradient(1200px 700px at 78% 20%, rgba(59,130,246,0.14), transparent 60%),
+      radial-gradient(900px 600px at 90% 90%, rgba(236,72,153,0.08), transparent 60%),
+      #0b1220;
+    color: #e6edf6;
+    position: relative;
+  }
+  /* subtle grid */
+  .grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(148,163,184,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148,163,184,0.06) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+  .pill {
+    position: absolute; top: 56px; left: 80px;
+    display: flex; gap: 16px; align-items: center;
+  }
+  .pill .tag {
+    font-size: 20px; font-weight: 600; letter-spacing: 0.04em;
+    color: #9fb3cc; border: 1px solid rgba(148,163,184,0.35);
+    border-radius: 999px; padding: 10px 24px;
+    background: rgba(148,163,184,0.08);
+  }
+  .pill .src { font-size: 20px; color: #64748b; }
+  .brand {
+    position: absolute; top: 130px; left: 80px;
+    display: flex; align-items: center; gap: 24px;
+  }
+  .icon {
+    width: 88px; height: 88px; border-radius: 22px;
+    background: linear-gradient(135deg, #22c55e, #3b82f6 55%, #a855f7);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 44px; font-weight: 800; color: #08101d;
+    box-shadow: 0 8px 32px rgba(59,130,246,0.35);
+  }
+  .brand .name { font-size: 40px; font-weight: 700; letter-spacing: -0.01em; }
+  .brand .sub { font-size: 20px; color: #7d93ad; margin-top: 2px; }
+  h1 {
+    position: absolute; top: 300px; left: 80px; width: 1000px;
+    font-size: 76px; line-height: 1.08; font-weight: 800; letter-spacing: -0.02em;
+  }
+  h1 .grad {
+    background: linear-gradient(90deg, #60a5fa, #f472b6);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .lede {
+    position: absolute; top: 520px; left: 80px; width: 900px;
+    font-size: 26px; line-height: 1.5; color: #9fb3cc;
+  }
+  .feats { position: absolute; top: 660px; left: 80px; width: 940px; }
+  .feat {
+    display: flex; align-items: baseline; gap: 18px;
+    padding: 18px 0; border-top: 1px solid rgba(148,163,184,0.14);
+  }
+  .feat .n {
+    font-size: 18px; color: #60a5fa; font-weight: 700; width: 34px;
+    font-variant-numeric: tabular-nums;
+  }
+  .feat .l { font-size: 25px; font-weight: 700; width: 300px; }
+  .feat .d { font-size: 22px; color: #7d93ad; }
+  .mono { font-family: "SF Mono", "Geist Mono", Menlo, monospace; }
+
+  /* right side: herdr window mockup with quota pane */
+  .win {
+    position: absolute; top: 120px; right: 70px; width: 820px; height: 760px;
+    background: #101a2b; border: 1px solid rgba(148,163,184,0.25);
+    border-radius: 18px; box-shadow: 0 30px 80px rgba(2,6,17,0.6);
+    overflow: hidden;
+  }
+  .titlebar {
+    height: 52px; background: #0c1524;
+    display: flex; align-items: center; padding: 0 20px; gap: 10px;
+    border-bottom: 1px solid rgba(148,163,184,0.15);
+  }
+  .dot { width: 14px; height: 14px; border-radius: 50%; }
+  .r { background: #ff5f57; } .y { background: #febc2e; } .g { background: #28c840; }
+  .tab {
+    margin-left: 20px; font-size: 17px; color: #c8d6e8;
+    background: rgba(148,163,184,0.12); border-radius: 8px; padding: 6px 18px;
+  }
+  .pane { padding: 22px 26px; }
+  .pane-head {
+    display: flex; align-items: center; background: #16233a; border-radius: 10px;
+    padding: 12px 16px; margin-bottom: 16px;
+  }
+  .pane-head .t { font-size: 18px; font-weight: 700; }
+  .pane-head .age { font-size: 15px; color: #7d93ad; margin-left: 14px; }
+  .pane-head .btn {
+    margin-left: auto; font-size: 15px; color: #c8d6e8;
+    border: 1px solid rgba(148,163,184,0.35); border-radius: 7px; padding: 5px 16px;
+    background: rgba(148,163,184,0.08);
+  }
+  .row { padding: 10px 4px 12px; border-top: 1px solid rgba(148,163,184,0.1); }
+  .row .l1 { display: flex; align-items: baseline; }
+  .row .name { font-size: 19px; font-weight: 700; }
+  .row .plan { font-size: 14px; color: #64748b; margin-left: 10px; }
+  .row .pct { margin-left: auto; font-size: 19px; font-weight: 700; }
+  .row .meta { font-size: 15px; color: #7d93ad; margin-top: 3px; white-space: nowrap; overflow: hidden; }
+  .bar { height: 5px; border-radius: 3px; background: rgba(148,163,184,0.15); margin-top: 8px; }
+  .bar i { display: block; height: 100%; border-radius: 3px; }
+  .ok { color: #4ade80; } .warn { color: #facc15; } .bad { color: #f87171; }
+  .fill-ok { background: #4ade80; } .fill-warn { background: #facc15; } .fill-bad { background: #f87171; }
+  .folded { font-size: 15px; color: #64748b; padding: 12px 4px; }
+  .folded b { color: #9fb3cc; font-weight: 600; }
+
+  /* floating detail card */
+  .card {
+    position: absolute; right: 20px; bottom: 90px; width: 360px;
+    background: #131f33; border: 1px solid rgba(96,165,250,0.4);
+    border-radius: 14px; padding: 20px 22px;
+    box-shadow: 0 18px 50px rgba(2,6,17,0.65);
+  }
+  .card .k { font-size: 15px; color: #7d93ad; letter-spacing: 0.06em; text-transform: uppercase; }
+  .card .v { font-size: 26px; font-weight: 800; margin-top: 6px; }
+  .card .s { font-size: 16px; color: #9fb3cc; margin-top: 6px; }
+</style>
+</head>
+<body>
+  <div class="grid"></div>
+
+  <div class="pill">
+    <span class="tag">Herdr mod</span>
+    <span class="src">quota-axi · GitHub</span>
+  </div>
+
+  <div class="brand">
+    <div class="icon">Q</div>
+    <div>
+      <div class="name">herdr-quota</div>
+      <div class="sub">A herdr-app mod · sjennings/herdr-quota</div>
+    </div>
+  </div>
+
+  <h1>Know your agent quota<br><span class="grad">without leaving the pane.</span></h1>
+
+  <p class="lede">Every provider's tightest window, remaining percentage, reset
+  countdown and pace — refreshed on a timer beside your agent's terminal,
+  instead of buried in a terminal dump.</p>
+
+  <div class="feats">
+    <div class="feat"><span class="n">1</span><span class="l">Tightest window first</span><span class="d">rows sorted by what runs out soonest</span></div>
+    <div class="feat"><span class="n">2</span><span class="l">Resets &amp; pace</span><span class="d">countdowns recounted every minute, no re-reads</span></div>
+    <div class="feat"><span class="n">3</span><span class="l">Read-only</span><span class="d">mints no credentials of its own — ever</span></div>
+    <div class="feat"><span class="n">4</span><span class="l">Pane or bar</span><span class="d">full pane, or a 34&nbsp;px status bar when docked short</span></div>
+  </div>
+
+  <div class="win">
+    <div class="titlebar">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="tab">Quota</span>
+    </div>
+    <div class="pane">
+      <div class="pane-head">
+        <span class="t">Quota</span><span class="age">quota-axi · just now</span>
+        <span class="btn">Refresh</span>
+      </div>
+
+      <div class="row">
+        <div class="l1"><span class="name">claude</span><span class="plan">max</span><span class="pct ok">64%</span></div>
+        <div class="meta">all models · week + 5h · resets in 2d 8h · behind · priority 5.8</div>
+        <div class="bar"><i class="fill-ok" style="width:64%"></i></div>
+      </div>
+
+      <div class="row">
+        <div class="l1"><span class="name">codex</span><span class="plan">pro</span><span class="pct warn">41%</span></div>
+        <div class="meta">all models · week + 12h · resets in 3d 2h · on pace · priority 4.1</div>
+        <div class="bar"><i class="fill-warn" style="width:41%"></i></div>
+      </div>
+
+      <div class="row">
+        <div class="l1"><span class="name">grok</span><span class="plan"></span><span class="pct bad">18%</span></div>
+        <div class="meta">all products · day · resets in 5h 12m · ahead · priority 7.3</div>
+        <div class="bar"><i class="fill-bad" style="width:18%"></i></div>
+      </div>
+
+      <div class="row">
+        <div class="l1"><span class="name">kimi</span><span class="plan"></span><span class="pct warn">33%</span></div>
+        <div class="meta">all models · week · resets in 1d 19h · behind · priority 6.0</div>
+        <div class="bar"><i class="fill-warn" style="width:33%"></i></div>
+      </div>
+
+      <div class="folded"><b>2 not set up:</b> cursor · copilot · <u>show</u></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="k">Tightest window</div>
+    <div class="v bad">grok · 18%</div>
+    <div class="s">resets in 5h 12m — the pane puts it first</div>
+  </div>
+</body>
+</html>
