@@ -1,0 +1,7 @@
+node_modules/
+*.error
+.audit/
+.upstream/
+gpui-kit.d.ts
+jsconfig.json
+herdr-shot*.png

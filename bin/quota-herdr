@@ -1,0 +1,41 @@
+#!/bin/sh
+# Open the quota-axi report as a herdr-app pane instead of a browser tab.
+#
+#   quota-herdr              open (or split) the Quota pane. QUOTA_HERDR_PLACE
+#                            picks where: right (default), down, or tab.
+#   quota-herdr <args>       run quota-axi with these args unchanged
+#                            (--json, --provider claude, ...).
+#
+# With no herdr window, no-arg runs print the plain quota-axi table.
+set -eu
+
+case "${1:-}" in
+  "") ;;
+  *) exec quota-axi "$@" ;;
+esac
+
+fallback() {
+  echo "quota-herdr: $1; printing the quota-axi table instead" >&2
+  exec quota-axi
+}
+
+command -v quota-axi >/dev/null 2>&1 || { echo "quota-herdr: quota-axi not found on PATH" >&2; exit 1; }
+command -v herdr-app >/dev/null 2>&1 || fallback "herdr-app not found"
+command -v jq >/dev/null 2>&1 || fallback "jq not found"
+herdr-app status >/dev/null 2>&1 || fallback "no herdr window"
+
+place=${QUOTA_HERDR_PLACE:-right}
+
+# The pane of the terminal that started this command (the agent's), when it
+# is one of this machine's terminals in the window.
+pane=""
+if [ -n "${HC_TERMINAL_ID:-}" ] && [ "$place" != tab ]; then
+  pane=$(herdr-app ls | jq -r --arg t "$HC_TERMINAL_ID" \
+    'first(.spaces[] | select(.machine == null) | .tabs[].terminals[] | select(.terminal == $t) | .pane) // empty')
+fi
+
+if [ -n "$pane" ]; then
+  herdr-app "do" pane.split --direction "$place" --pane "$pane" --mod quota >/dev/null && exit 0
+fi
+herdr-app "do" tab.new --name Quota --mod quota >/dev/null && exit 0
+fallback "herdr-app could not open the pane"
