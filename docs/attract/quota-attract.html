@@ -113,17 +113,6 @@
   .fill-ok { background: #4ade80; } .fill-warn { background: #facc15; } .fill-bad { background: #f87171; }
   .folded { font-size: 15px; color: #64748b; padding: 12px 4px; }
   .folded b { color: #9fb3cc; font-weight: 600; }
-
-  /* floating detail card */
-  .card {
-    position: absolute; right: 20px; bottom: 90px; width: 360px;
-    background: #131f33; border: 1px solid rgba(96,165,250,0.4);
-    border-radius: 14px; padding: 20px 22px;
-    box-shadow: 0 18px 50px rgba(2,6,17,0.65);
-  }
-  .card .k { font-size: 15px; color: #7d93ad; letter-spacing: 0.06em; text-transform: uppercase; }
-  .card .v { font-size: 26px; font-weight: 800; margin-top: 6px; }
-  .card .s { font-size: 16px; color: #9fb3cc; margin-top: 6px; }
 </style>
 </head>
 <body>
@@ -151,7 +140,7 @@
   <div class="feats">
     <div class="feat"><span class="n">1</span><span class="l">Tightest window first</span><span class="d">rows sorted lowest remaining percent first</span></div>
     <div class="feat"><span class="n">2</span><span class="l">Resets &amp; pace</span><span class="d">countdowns recounted every minute, no re-reads</span></div>
-    <div class="feat"><span class="n">3</span><span class="l">No credentials of its own</span><span class="d">renewals only via each vendor CLI; <span class="mono">--no-credential-refresh</span> turns them off</span></div>
+    <div class="feat"><span class="n">3</span><span class="l">Never touches credentials</span><span class="d">every read runs <span class="mono">--no-credential-refresh</span></span></div>
     <div class="feat"><span class="n">4</span><span class="l">Pane or bar</span><span class="d">full pane, or a 34&nbsp;px status bar when docked short</span></div>
   </div>
 
@@ -167,7 +156,7 @@
       </div>
 
       <div class="row">
-        <div class="l1"><span class="name">grok</span><span class="plan"></span><span class="pct bad">18%</span></div>
+        <div class="l1"><span class="name">glm</span><span class="plan"></span><span class="pct bad">18%</span></div>
         <div class="meta">all products · day · resets in 5h 12m · ahead · priority 7.3</div>
         <div class="bar"><i class="fill-bad" style="width:18%"></i></div>
       </div>
@@ -192,12 +181,6 @@
 
       <div class="folded"><b>2 not set up:</b> cursor · copilot · <u>show</u></div>
     </div>
-  </div>
-
-  <div class="card">
-    <div class="k">Tightest window</div>
-    <div class="v bad">grok · 18%</div>
-    <div class="s">resets in 5h 12m — the pane puts it first</div>
   </div>
 </body>
 </html>
