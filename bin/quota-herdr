@@ -35,7 +35,7 @@ if [ -n "${HC_TERMINAL_ID:-}" ] && [ "$place" != tab ]; then
 fi
 
 if [ -n "$pane" ]; then
-  herdr-app do pane.split --direction "$place" --pane "$pane" --mod quota >/dev/null && exit 0
+  herdr-app "do" pane.split --direction "$place" --pane "$pane" --mod quota >/dev/null && exit 0
 fi
-herdr-app do tab.new --name Quota --mod quota >/dev/null && exit 0
+herdr-app "do" tab.new --name Quota --mod quota >/dev/null && exit 0
 fallback "herdr-app could not open the pane"
