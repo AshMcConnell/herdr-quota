@@ -4,6 +4,7 @@ import {
   remainingTone, paceText, paceTone, barMode, summarize,
 } from "../mods/quota/model.js";
 import fixture from "./fixtures/quota-fixture.json" with { type: "json" };
+import demoFixture from "./fixtures/quota-demo.json" with { type: "json" };
 
 // 2026-11-02T15:00:00Z — three hours after the fixture's generatedAt.
 const NOW = Date.parse("2026-11-02T15:00:00.000Z");
@@ -177,5 +178,29 @@ describe("summarize", () => {
     expect(empty.unavailable).toEqual([]);
     const broken = summarize(null, NOW);
     expect(broken.active).toEqual([]);
+  });
+});
+
+describe("demo fixture (the repo preview's data)", () => {
+  test("summarizes to live rows and folded not-set-up providers", () => {
+    const view = summarize(demoFixture);
+    expect(typeof view.generatedAt).toBe("number");
+    // Every provider that stays active is fresh — the demo shows a healthy
+    // fleet, not credential errors.
+    for (const p of view.active) {
+      expect(p.status).not.toBe("stale");
+      expect(p.error).toBeNull();
+    }
+    expect(view.unavailable.length).toBeGreaterThan(0);
+  });
+
+  test("carries resolved timestamps and no leftover placeholders", () => {
+    for (const w of demoFixture.providers.flatMap((p) => p.windows ?? [])) {
+      if (w.resetsAt != null) {
+        expect(typeof w.resetsAt).toBe("string");
+        expect(Number.isNaN(Date.parse(w.resetsAt))).toBe(false);
+      }
+    }
+    expect(JSON.stringify(demoFixture).includes("PLACEHOLDER")).toBe(false);
   });
 });

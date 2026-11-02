@@ -1,6 +1,6 @@
 import { View, div } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
-import { exec, theme, run, home } from "herdr";
+import { exec, theme, run, home, readTextFile, props } from "herdr";
 import {
   summarize, barMode, remainingTone, paceText, formatReset, formatAge,
 } from "./model.js";
@@ -40,6 +40,11 @@ export default class Quota extends View {
     this.state = { name: "loading" };
     this.fetching = false;
     this.expanded = false;
+    // Demo mode (`tab.new --mod quota --props '{"demo": "<path>"}'`):
+    // read one static quota-axi JSON file instead of polling the real
+    // CLI. Used for the repo's preview and manual inspection — never
+    // touches credentials or quota-axi itself.
+    this.demoFile = typeof props()?.demo === "string" && props().demo ? props().demo : null;
     this.fetch(cx);
     cx.timer.every(FETCH_MS, (cx) => this.fetch(cx));
     cx.timer.every(TICK_MS, (cx) => {
@@ -52,6 +57,23 @@ export default class Quota extends View {
   fetch(cx, { force = false } = {}) {
     if (this.fetching) return;
     this.fetching = true;
+    if (this.demoFile) {
+      cx.spawn(async (cx) => {
+        this.now = Date.now();
+        try {
+          const text = await readTextFile(this.demoFile);
+          if (text === null) throw new Error("demo file not found");
+          this.raw = JSON.parse(text);
+          this.view = summarize(this.raw, this.now);
+          this.state = { name: "ready" };
+        } catch (e) {
+          this.state = { name: "error", message: `demo file could not be read: ${e?.message ?? e}` };
+        }
+        this.fetching = false;
+        cx.notify();
+      });
+      return;
+    }
     const args = ["--json", "--no-credential-refresh"];
     if (!force) args.push("--max-age", MAX_AGE);
     cx.spawn(async (cx) => {

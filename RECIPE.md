@@ -30,11 +30,11 @@ it — or a 34 px bar when the same mod is docked short in a layout.
   and its remedy: `stale: kimi_code_cli_credential_expired · run kimi to
   refresh`.
 - **Nothing quantified**: a credits-only provider shows
-  `usd · 29.36 remaining`; a provider with windows but no verdict lists
+  `usd · 41.2 remaining`; a provider with windows but no verdict lists
   them (`month · 100% left`); one with neither says
   `no quota windows reported`.
 - **Not set up**: one folded line, 11.5 px `dim` —
-  `13 not set up: cursor · copilot · grok · …` — with a `show` link that
+  `3 not set up: cursor · copilot · grok · …` — with a `show` link that
   lists each provider and its reason (`cursor — Cursor sign-in required`).
 - **Bar mode** (block ≤ 56 px tall): one 11.5 px row of chips
   `name 32%` in each provider's tone color, six worst first, then
@@ -76,7 +76,11 @@ it — or a 34 px bar when the same mod is docked short in a layout.
     the Homebrew prefixes, because the app's own environment often lacks
     version managers (a started quota-axi that exits nonzero is a real
     error, not a reason to try the next path). JSON parse and error text
-    land in one `state` machine (`loading` / `ready` / `error`).
+    land in one `state` machine (`loading` / `ready` / `error`). A
+    `demo` prop (`tab.new --mod quota --props '{"demo": "<path>"}'`)
+    reads one static quota-axi JSON file instead — the pane runs no
+    quota-axi and never touches credentials; `tests/fixtures/quota-demo.json`
+    (made-up providers, realistic numbers) is the repo preview's data.
   - `model.js`: pure. `summarize(report, now)` → active rows (name, plan,
     status, `tightest`, windows, credits, error, remedy) and the folded
     unavailable list; `pickTightest`, `formatReset`, `formatAge`,
@@ -92,7 +96,9 @@ it — or a 34 px bar when the same mod is docked short in a layout.
 - **install.sh**: three symlinks (mod, launcher, skill) + `herdr-app
   check`. `tests/launcher.test.sh` drives the launcher against stub
   binaries; `tests/fixtures/quota-fixture.json` is a trimmed real
-  `--json` report.
+  `--json` report and `tests/fixtures/quota-demo.json` the made-up
+  demo data behind `preview.png` (regenerated with the `demo` prop,
+  cropped to the pane only).
 
 ## Watch out
 
