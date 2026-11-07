@@ -1,10 +1,10 @@
 # Quota
 
-Local provider quota windows (quota-axi) in a pane
-beside your agent instead of a terminal dump. Every provider's tightest
-window, remaining %, reset countdown and pace, refreshed on a timer;
-not-set-up and credential-expired providers shown plainly, folded into
-one line. quota-axi itself is untouched: the pane only reads it, and
+Local provider quota windows (quota-axi) in a pane beside your agent —
+or a status bar under it — instead of a terminal dump. Every provider's
+tightest window, remaining %, reset countdown and pace, refreshed on a
+timer; not-set-up and credential-expired providers shown plainly, folded
+into one line. quota-axi itself is untouched: the pane only reads it, and
 `quota-herdr <args>` still passes any argument through.
 
 ![Quota](docs/screenshot.png)
@@ -67,6 +67,47 @@ it — or a 34 px bar when the same mod is docked short in a layout.
   windows for labels and the earliest reset; an id quota-axi no longer
   lists still shows (as its own id), never silently dropped.
 
+## Status bar
+
+An optional second mod, `mods/status-quota/`, replaces herdr-app's status
+bar with a quota strip: one chip per live provider for its 5-hour window,
+and a hover card with the rest. It is a fork of Herdr's shipped
+`workspace-status` mod, so machine, branch, agent count and the palette
+hint stay as they were.
+
+- **Chips**, 19 px tall, 6 px side padding, 5 px radius, on the `chrome`
+  bar. Each reads `name` in `muted`, the 5-hour percentage in `done` /
+  `ansi3` / `blocked` (≥ 60 / ≥ 30 / below), then `· 4h 52m` in `dim`
+  while that window has a reset time. The chip sits on a 50 % `surface`
+  track filled from the left in the tone colour at 25 % for what is
+  left. Clicking a chip opens the Quota pane as a tab; `+N` does too.
+- **Which window**: the provider's `session` window, or a `rolling` one
+  (OpenCode Go's plan-declared 5-hour cap), else its tightest window.
+  Chips sort by that percentage ascending; at most five fit, counted
+  from the space left in the row.
+- **Hover card**, 262 px wide, `popover` background, 1 px `border`, 10 px
+  radius, 12 px padding: name and plan with the big percentage; a 5 px
+  bar; the refill countdown and its clock time; the projection from the
+  provider's runway (`runs out in ~2h 33m · 23:22 · early estimate`, or
+  `lasts to reset` / `empty now`); `~85 % over at reset` (or `~87 % left
+  at reset`); then up to three weekly and monthly windows, each with its
+  own 4 px bar. The card sits 20 px above the bar through a transparent
+  bottom padding inside its content, which stays inside the hover
+  region so the pointer can cross the gap.
+- **Pace tick**, on the card's bars only: a 2 px vertical `foreground`
+  line at 50 % opacity, 3 px proud of the bar, where the bar would reach
+  at an even burn — `percentRemaining − reservePercentPoints`, because
+  quota-axi publishes `reservePercentPoints = percentRemaining −
+  timeRemainingPercent`. Clamped to 0–99. A tick left of the fill's end
+  means faster than the clock.
+- **Data**: the same `quota-axi --json --no-credential-refresh --max-age
+  4m` poll every 5 minutes, recounted every minute. `quota-model.js` is
+  a copy of `mods/quota/model.js` — herdr mods cannot import each other
+  — so keep the two files equal.
+- **Layout**: `mod.json` is `{ "place": "none" }`; it appears only when
+  a layout's status block names it: `{ "id": "status", "type": "block",
+  "content": { "mod": "status-quota" }, "size": { "px": 28 } }`.
+
 ## Built from
 
 - **Mod** `mods/quota/`, `mod.json` `{ "place": "none" }`: it appears
@@ -87,6 +128,11 @@ it — or a 34 px bar when the same mod is docked short in a layout.
     unavailable list; `pickTightest`, `formatReset`, `formatAge`,
     `remainingTone`, `paceText`/`paceTone`, `scopeLabel`, `barMode`.
     No herdr imports, so `tests/model.test.js` runs under plain `bun test`.
+- **Status bar mod** `mods/status-quota/`, `mod.json` `{ "place": "none" }`,
+  a fork of Herdr's `workspace-status`: the same machine, branch, agent
+  and palette row, plus the chips, hover card and pace tick described
+  above. It runs the same quota-axi arguments and imports the copied
+  `./quota-model.js`.
 - **herdr**: `theme`, `exec`, `run("tab.new", …)`, `cx.timer.every`,
   `cx.spawn`, `on_size_change`, `overflow_y_scrollbar`.
 - **Launcher** `bin/quota-herdr` (POSIX sh, needs `jq`):
@@ -94,11 +140,11 @@ it — or a 34 px bar when the same mod is docked short in a layout.
   --mod quota`. Argument pass-through `exec quota-axi "$@"`.
 - **Skill** `skill/quota-herdr/SKILL.md`: tells agents when to run
   `quota-herdr` and that any quota-axi arguments pass through.
-- **install.sh**: three symlinks (mod, launcher, skill) + `herdr-app
-  check`. `tests/launcher.test.sh` drives the launcher against stub
-  binaries; `tests/fixtures/quota-fixture.json` is a trimmed real
-  `--json` report and `tests/fixtures/quota-demo.json` the made-up
-  demo data behind `docs/screenshot.png`. To regenerate it, start
+- **install.sh**: four symlinks (mod, status bar mod, launcher, skill) +
+  `herdr-app check` for both mods. `tests/launcher.test.sh` drives the
+  launcher against stub binaries; `tests/fixtures/quota-fixture.json` is
+  a trimmed real `--json` report and `tests/fixtures/quota-demo.json` the
+  made-up demo data behind `docs/screenshot.png`. To regenerate it, start
   herdr-app with `PATH="$PWD/tests/preview:$PATH"` so the mod's first
   candidate is `tests/preview/quota-axi`, a shim that prints the demo
   fixture; open the pane and capture it cropped to the pane only.
@@ -134,13 +180,13 @@ it — or a 34 px bar when the same mod is docked short in a layout.
 
 ## Done when
 
-- `herdr-app check mods/quota` passes.
+- `herdr-app check mods/quota` and `mods/status-quota` pass.
 - `bun test` and `sh tests/launcher.test.sh` pass.
 - `quota-herdr` beside an agent terminal opens the pane, rows render
   with percentages, bars and reset countdowns, and the age label counts
   up; **Refresh** makes it "just now".
 - A provider with expired credentials shows the stale badge, the raw
   error and its remedy; signed-out providers stay folded until `show`.
-- `HOME=$tmp HERDR_APP_HOME=$tmp/... ./install.sh` links exactly three
-  paths and checks the mod; `quota-herdr` with herdr closed prints the
+- `HOME=$tmp HERDR_APP_HOME=$tmp/... ./install.sh` links exactly four
+  paths and checks both mods; `quota-herdr` with herdr closed prints the
   quota-axi table with a note on stderr.

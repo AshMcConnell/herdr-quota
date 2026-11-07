@@ -1,7 +1,7 @@
 # herdr-quota
 
-Watch local provider quota windows in a herdr-app pane instead of a
-terminal dump.
+Watch local provider quota windows in a herdr-app pane — or as chips in
+its status bar — instead of a terminal dump.
 
 ![Quota mod card](preview.png)
 
