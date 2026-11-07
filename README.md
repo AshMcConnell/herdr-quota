@@ -36,9 +36,10 @@ git clone https://github.com/sjennings/herdr-quota
 cd herdr-quota && ./install.sh
 ```
 
-This links three things to this checkout:
+This links four things to this checkout:
 
 - `mods/quota/` as the herdr mod `quota` (`~/.config/herdr-app/mods/quota`)
+- `mods/status-quota/` as the herdr mod `status-quota` (the optional status bar, see below)
 - `bin/quota-herdr` into `~/.local/bin`
 - `skill/quota-herdr` into `~/.claude/skills`, so agents know the command
 
@@ -62,7 +63,30 @@ one-line bar of the tightest providers when its block is docked short
 add a block such as
 `{ "id": "quota", "type": "block", "size": { "px": 34 }, "content": { "mod": "quota" } }`,
 or open it as a pane and drag it where you want. Clicking the bar opens
-the full pane in a tab.
+the full pane in a tab. There is also a dedicated status-bar mod, described
+below.
+
+## Status bar
+
+`mods/status-quota` is an optional second mod that replaces herdr-app's
+status bar with a quota strip. Each provider gets a chip showing its 5-hour
+window — percentage and refill time — on a fill that tracks what is left.
+Hovering opens a card with the reset clock, quota-axi's run-out projection,
+the balance left at reset, a pace tick (where an even burn would leave you)
+and the provider's weekly and monthly windows. Machine, branch, agent count
+and the palette hint stay where they were.
+
+It is a fork of Herdr's `workspace-status` mod, so it lives beside `quota`
+rather than inside it. `install.sh` links it, but it never docks itself
+(`"place": "none"`), so nothing changes until a layout asks for it. In a
+clone of the layout you use, point the status block at it:
+
+```json
+{ "id": "status", "type": "block", "content": { "mod": "status-quota" }, "size": { "px": 28 } }
+```
+
+`quota-model.js` is a copy of `mods/quota/model.js` — herdr mods cannot
+import each other — so keep the two files in step when parsing changes.
 
 ## What you see
 
